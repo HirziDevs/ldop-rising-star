@@ -7,12 +7,12 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id        String    @id @default(cuid())
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
   nama      String?
   email     String    @unique
   role      String    @default("USER")
@@ -21,7 +21,7 @@ model User {
 }
 
 model Lapangan {
-  id        String    @id @default(cuid())
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
   nama      String
   harga     Int
   aktif     Boolean   @default(true)
@@ -30,9 +30,9 @@ model Lapangan {
 }
 
 model Booking {
-  id           String   @id @default(cuid())
-  userId       String
-  lapanganId   String
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String   @db.ObjectId
+  lapanganId   String   @db.ObjectId
   tanggalAwal  DateTime
   tanggalAkhir DateTime
   status       String   @default("PENDING")

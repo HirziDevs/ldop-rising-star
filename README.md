@@ -2,7 +2,7 @@
 
 Panduan teknis untuk tim (Backend & Frontend): cara menjalankan project, struktur folder, routing, dan kondisi API saat ini.
 
-**Stack:** Next.js 15 (App Router, TypeScript) · Tailwind CSS + shadcn/ui · SQLite · Prisma 6 · Auth.js v5
+**Stack:** Next.js 15 (App Router, TypeScript) · Tailwind CSS + shadcn/ui · MongoDB · Prisma 6 · Auth.js v5
 
 ## Pembagian Role Anggota Kelompok
 
@@ -33,7 +33,7 @@ cd <nama-folder-project>
 npm install
 npm install @prisma/client dotenv
 cp .env.example .env          # sesuaikan nilainya jika diperlukan
-npx prisma migrate dev        # buat tabel
+npx prisma db push            # sinkronkan skema dengan MongoDB
 npx prisma generate           # buat Prisma Client di lib/generated/prisma
 npm run dev                   # http://localhost:3000
 ```
@@ -44,7 +44,7 @@ Untuk PowerShell, salin `.env` dengan:
 Copy-Item .env.example .env
 ```
 
-> `.env` **tidak boleh di-commit**. Database development memakai SQLite dengan URL default `file:./dev.db`.
+> `.env` **tidak boleh di-commit**. Isi `DATABASE_URL` dengan connection string MongoDB. Prisma memerlukan MongoDB replica set; MongoDB Atlas sudah menyediakannya.
 
 | Perintah | Fungsi |
 |---|---|
@@ -52,7 +52,7 @@ Copy-Item .env.example .env
 | `npm run build` | Buat build produksi |
 | `npm start` | Jalankan build produksi |
 | `npm run lint` | Cek kode dengan ESLint |
-| `npx prisma migrate dev` | Buat atau terapkan migrasi database |
+| `npx prisma db push` | Sinkronkan skema Prisma dengan MongoDB (MongoDB tidak memakai Prisma Migrate) |
 | `npx prisma generate` | Buat Prisma Client di `lib/generated/prisma` |
 
 ---
@@ -103,8 +103,8 @@ lib/
 └── utils.ts                        ← helper className
 prisma/
 ├── schema.prisma                   ← skema database
-├── migrations/                     ← migrasi database
-└── dev.db                          ← database SQLite lokal
+├── migrations/                     ← migrasi SQLite lama; tidak dipakai MongoDB
+└── dev.db                          ← database SQLite lama; tidak otomatis dipindahkan
 ```
 
 - Folder dengan kurung seperti `(public)` dan `(auth)` adalah **route group**: hanya untuk mengelompokkan halaman, **tidak muncul di URL**.
@@ -177,7 +177,7 @@ export async function GET(req: NextRequest, { params }: Ctx) {
 
 ## 5. Database
 
-Skema SQLite berada di `prisma/schema.prisma`.
+Skema MongoDB berada di `prisma/schema.prisma`. Model memakai `ObjectId`; relasi booking menyimpan `userId` dan `lapanganId` sebagai `ObjectId`.
 
 | Model | Keterangan |
 |---|---|
@@ -188,6 +188,8 @@ Skema SQLite berada di `prisma/schema.prisma`.
 Setelah mengubah skema:
 
 ```bash
-npx prisma migrate dev      # buat migrasi
+npx prisma db push          # terapkan skema ke MongoDB
 npx prisma generate         # generate ulang Prisma Client
 ```
+
+MongoDB tidak memakai Prisma Migrate. Migrasi dan file database SQLite lama di `prisma/` hanya disimpan sebagai arsip; data SQLite tidak dipindahkan otomatis ke MongoDB.
