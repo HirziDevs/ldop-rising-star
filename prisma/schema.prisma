@@ -25,6 +25,7 @@ model Lapangan {
   nama      String
   harga     Int
   aktif     Boolean   @default(true)
+  gambar    String?
   bookings  Booking[]
   createdAt DateTime  @default(now())
 }
