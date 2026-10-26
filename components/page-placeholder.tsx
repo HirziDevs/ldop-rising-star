@@ -6,7 +6,6 @@ type Props = {
   items: string[];
 };
 
-// Penanda halaman yang belum dikerjakan. Ganti seluruh isi halaman saat implementasi.
 export function PagePlaceholder({ title, owner, items }: Props) {
   return (
     <Card>

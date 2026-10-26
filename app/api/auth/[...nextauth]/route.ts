@@ -1,4 +1,3 @@
-import { notImplemented } from "@/lib/placeholder";
+import { handlers } from "@/lib/auth";
 
-export const GET = notImplemented;
-export const POST = notImplemented;
+export const { GET, POST } = handlers;

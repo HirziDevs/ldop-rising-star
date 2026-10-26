@@ -2,7 +2,7 @@
 
 Panduan teknis untuk tim (Backend & Frontend): cara menjalankan project, struktur folder, routing, dan kondisi API saat ini.
 
-**Stack:** Next.js 15 (App Router, TypeScript) · Tailwind CSS + shadcn/ui · MongoDB · Prisma 6 · Auth.js v5
+**Stack:** Next.js 16 (App Router, TypeScript) · Tailwind CSS 4 + shadcn/ui · MongoDB · Prisma 6 · Auth.js v5
 
 ## Pembagian Role Anggota Kelompok
 
@@ -31,10 +31,9 @@ Panduan teknis untuk tim (Backend & Frontend): cara menjalankan project, struktu
 git clone <repo>
 cd <nama-folder-project>
 npm install
-npm install @prisma/client dotenv
-cp .env.example .env          # sesuaikan nilainya jika diperlukan
+cp .env.example .env          # lalu isi DATABASE_URL dan AUTH_SECRET
+npx prisma generate           # buat Prisma Client di node_modules/@prisma/client
 npx prisma db push            # sinkronkan skema dengan MongoDB
-npx prisma generate           # buat Prisma Client di lib/generated/prisma
 npm run dev                   # http://localhost:3000
 ```
 
@@ -44,7 +43,7 @@ Untuk PowerShell, salin `.env` dengan:
 Copy-Item .env.example .env
 ```
 
-> `.env` **tidak boleh di-commit**. Isi `DATABASE_URL` dengan connection string MongoDB. Prisma memerlukan MongoDB replica set; MongoDB Atlas sudah menyediakannya.
+> `.env` **tidak boleh di-commit**. Isi `DATABASE_URL` dengan connection string MongoDB dan `AUTH_SECRET` dengan secret Auth.js (`npx auth secret`). Prisma memerlukan MongoDB replica set; MongoDB Atlas sudah menyediakannya.
 
 | Perintah | Fungsi |
 |---|---|
@@ -53,7 +52,7 @@ Copy-Item .env.example .env
 | `npm start` | Jalankan build produksi |
 | `npm run lint` | Cek kode dengan ESLint |
 | `npx prisma db push` | Sinkronkan skema Prisma dengan MongoDB (MongoDB tidak memakai Prisma Migrate) |
-| `npx prisma generate` | Buat Prisma Client di `lib/generated/prisma` |
+| `npx prisma generate` | Buat Prisma Client di `node_modules/@prisma/client` |
 
 ---
 
@@ -83,6 +82,7 @@ app/
 │   └── settings/page.tsx           -> /admin/settings
 ├── api/
 │   ├── auth/[...nextauth]/route.ts
+│   ├── auth/register/route.ts      ← pendaftaran akun
 │   ├── lapangan/
 │   │   ├── route.ts
 │   │   └── [id]/route.ts
@@ -99,8 +99,14 @@ components/
 ├── navbar.tsx                      ← header publik, auth, dan admin
 └── page-placeholder.tsx            ← penanda halaman yang belum dikerjakan
 lib/
+├── auth.ts                         ← Auth.js Credentials, hash password, Prisma
+├── guard.ts                        ← validasi sesi dan role untuk halaman/API
+├── prisma.ts                       ← singleton Prisma Client
 ├── placeholder.ts                  ← respons 501 untuk API kerangka
 └── utils.ts                        ← helper className
+auth.config.ts                      ← konfigurasi Auth.js tanpa akses database
+types/
+└── next-auth.d.ts                  ← tipe tambahan untuk session dan JWT Auth.js
 prisma/
 ├── schema.prisma                   ← skema database
 ├── migrations/                     ← migrasi SQLite lama; tidak dipakai MongoDB
@@ -130,15 +136,14 @@ prisma/
 | `/admin/lapangan/[id]` | Detail lapangan |
 | `/admin/settings` | Pengaturan admin |
 
-> Halaman masih berupa kerangka `<PagePlaceholder>`. Ganti isinya saat mulai mengimplementasikan fitur.
-
 ---
 
 ## 4. Struktur API
 
 ```
 app/api/
-├── auth/[...nextauth]/route.ts       GET POST               Kerangka Auth.js
+├── auth/[...nextauth]/route.ts       GET POST               Auth.js
+├── auth/register/route.ts            POST                   Pendaftaran akun
 ├── lapangan/route.ts                 GET POST               Daftar & tambah lapangan
 ├── lapangan/[id]/route.ts            GET PUT PATCH DELETE   Detail, ubah, hapus lapangan
 └── bookings/
@@ -149,29 +154,12 @@ app/api/
 
 Setiap HTTP method (GET, POST, PUT, PATCH, DELETE) adalah **named export** di file `route.ts` yang sama.
 
-> **Status saat ini:** semua handler API di atas masih berupa kerangka dan mengembalikan status **501** (belum diimplementasi). Autentikasi, validasi input, dan operasi database belum tersedia.
-
 | Status | Kapan digunakan | Kondisi di project ini |
 |---|---|---|
-| 501 | Endpoint belum dikerjakan | Semua endpoint saat ini |
-
-### ⚠️ Next.js 15: `params` adalah Promise
-
-Di Next.js 15, `params` pada dynamic route (misalnya `/api/lapangan/[id]`) **harus di-`await`**.
-
-```ts
-// ❌ Next.js 14 (jangan dipakai)
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const id = params.id;
-}
-
-// ✅ Next.js 15
-type Ctx = { params: Promise<{ id: string }> };
-
-export async function GET(req: NextRequest, { params }: Ctx) {
-  const { id } = await params;
-}
-```
+| 200/201 | Login, sesi, atau pendaftaran berhasil | Auth.js dan pendaftaran akun |
+| 400/409/503 | Input salah, email sudah dipakai, atau database tidak tersedia | Pendaftaran akun |
+| 401/403 | Belum login atau role tidak punya akses | API lapangan dan booking |
+| 501 | Endpoint belum dikerjakan | Operasi lapangan dan booking |
 
 ---
 
@@ -181,7 +169,7 @@ Skema MongoDB berada di `prisma/schema.prisma`. Model memakai `ObjectId`; relasi
 
 | Model | Keterangan |
 |---|---|
-| `User` | Pengguna, email, dan role |
+| `User` | Nama, email, password hash, dan role (`USER` atau `ADMIN`) |
 | `Lapangan` | Nama, harga, dan status aktif lapangan |
 | `Booking` | Pengguna, lapangan, rentang waktu, dan status booking |
 

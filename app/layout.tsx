@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Booking Lapangan",
-  description: "Kerangka aplikasi booking lapangan olahraga.",
+  description: "Website booking lapangan olahraga.",
 };
 
 export default function RootLayout({
