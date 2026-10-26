@@ -37,12 +37,6 @@ npx prisma db push            # sinkronkan skema dengan MongoDB
 npm run dev                   # http://localhost:3000
 ```
 
-Untuk PowerShell, salin `.env` dengan:
-
-```powershell
-Copy-Item .env.example .env
-```
-
 > `.env` **tidak boleh di-commit**. Isi `DATABASE_URL` dengan connection string MongoDB dan `AUTH_SECRET` dengan secret Auth.js (`npx auth secret`). Prisma memerlukan MongoDB replica set; MongoDB Atlas sudah menyediakannya.
 
 | Perintah | Fungsi |
@@ -179,5 +173,3 @@ Setelah mengubah skema:
 npx prisma db push          # terapkan skema ke MongoDB
 npx prisma generate         # generate ulang Prisma Client
 ```
-
-MongoDB tidak memakai Prisma Migrate. Migrasi dan file database SQLite lama di `prisma/` hanya disimpan sebagai arsip; data SQLite tidak dipindahkan otomatis ke MongoDB.
