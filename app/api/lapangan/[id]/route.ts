@@ -5,7 +5,9 @@ import { deleteImage } from "@/lib/r2";
 import { addImageUrl, ImageError, isFilled, processAndUploadImage } from "@/lib/image";
 import {
   isLapanganId,
+  parseLapanganDeskripsi,
   parseLapanganHarga,
+  parseLapanganLokasi,
   parseLapanganNama,
 } from "@/lib/lapangan";
 
@@ -48,7 +50,14 @@ async function update(req: Request, { params }: Ctx, partial: boolean) {
     return NextResponse.json({ message: "Lapangan tidak ditemukan." }, { status: 404 });
   }
 
-  const data: { nama?: string; harga?: number; aktif?: boolean; gambar?: string | null } = {};
+  const data: {
+    nama?: string;
+    harga?: number;
+    aktif?: boolean;
+    lokasi?: string | null;
+    deskripsi?: string | null;
+    gambar?: string | null;
+  } = {};
 
   if (!partial || form.has("nama")) {
     const nama = parseLapanganNama(form.get("nama"));
@@ -59,6 +68,23 @@ async function update(req: Request, { params }: Ctx, partial: boolean) {
     const harga = parseLapanganHarga(form.get("harga"));
     if (!harga) return NextResponse.json({ message: "Harga harus berupa bilangan bulat lebih dari 0." }, { status: 400 });
     data.harga = harga;
+  }
+  if (!partial || form.has("lokasi")) {
+    const lokasi = parseLapanganLokasi(form.get("lokasi"));
+    if (lokasi === undefined) {
+      return NextResponse.json(
+        { message: "Lokasi harus berupa link Google Maps (https) dan maksimal 500 karakter." },
+        { status: 400 },
+      );
+    }
+    data.lokasi = lokasi;
+  }
+  if (!partial || form.has("deskripsi")) {
+    const deskripsi = parseLapanganDeskripsi(form.get("deskripsi"));
+    if (deskripsi === undefined) {
+      return NextResponse.json({ message: "Deskripsi maksimal 2000 karakter." }, { status: 400 });
+    }
+    data.deskripsi = deskripsi;
   }
   if (!partial || form.has("aktif")) {
     data.aktif = form.get("aktif") !== "false";

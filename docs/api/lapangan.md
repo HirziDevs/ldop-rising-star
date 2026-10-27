@@ -25,11 +25,49 @@ Field `Lapangan` yang muncul di semua respons sukses (kecuali `DELETE`):
 | `nama` | string | Nama lapangan. |
 | `harga` | number | Harga sebagai bilangan bulat. |
 | `aktif` | boolean | Status lapangan. Lapangan nonaktif tetap dapat dilihat. |
+| `lokasi` | string \| null | Link Google Maps lokasi lapangan (https), atau `null` jika belum diisi. |
+| `deskripsi` | string \| null | Deskripsi berbentuk paragraf, atau `null` jika belum diisi. Antarparagraf dipisahkan baris kosong (`\n\n`). |
 | `gambar` | string \| null | Key objek gambar di R2, bukan URL publik. |
 | `gambarUrl` | string \| null | URL gambar publik, atau `null` jika belum ada gambar. |
 | `createdAt` | string | Waktu pembuatan dalam serialisasi JSON tanggal. |
 
 Semua error berbentuk `{ "message": string }`.
+
+## Ketentuan lokasi
+
+Field `lokasi` bersifat opsional dan harus berupa link Google Maps. Link dibaca dengan
+parser URL, lalu disimpan dalam bentuk yang sudah dinormalkan (nama host huruf kecil,
+karakter khusus di-encode). Maksimal 500 karakter.
+
+| Bentuk link yang diterima | Contoh |
+|---|---|
+| Link bagikan dari aplikasi Google Maps | `https://maps.app.goo.gl/AbCdEf123456` |
+| Link `google.com/maps` (juga `google.co.id`) | `https://www.google.com/maps/place/Kampus+ITERA/@-5.36,105.31,17z` |
+| Link pencarian koordinat | `https://www.google.com/maps?q=-5.36,105.31` |
+| Link `maps.google.com` | `https://maps.google.com/?q=itera` |
+| Link pendek lama | `https://goo.gl/maps/AbCdEf` |
+
+Nilai berikut ditolak dengan 400: protokol selain `https`, domain selain di atas
+(termasuk subdomain palsu seperti `google.com.contoh.com`), link yang memuat
+username/password atau port, link `google.com` di luar path `/maps`, serta teks yang
+bukan URL (misalnya nama tempat). Nilai kosong disimpan sebagai `null`.
+
+Karena nilainya sudah divalidasi, konsumen dapat memakainya langsung sebagai `href`:
+
+```tsx
+<a href={lapangan.lokasi} target="_blank" rel="noopener noreferrer">Lihat di Google Maps</a>
+```
+
+## Ketentuan deskripsi
+
+Field `deskripsi` bersifat opsional, berbentuk paragraf, dan maksimal 2000 karakter
+(dihitung setelah dirapikan). Sebelum disimpan, `\r\n` diubah menjadi `\n`, tiga baris
+baru atau lebih dirapatkan menjadi satu baris kosong, lalu teks di-trim. Baris baru
+tunggal dan baris kosong antarparagraf dipertahankan. Teks yang kosong setelah
+dirapikan disimpan sebagai `null`.
+
+Konsumen yang menampilkan `deskripsi` perlu mempertahankan baris baru, misalnya dengan
+`white-space: pre-line` atau memecah teks menjadi paragraf berdasarkan `\n\n`.
 
 ## Ketentuan gambar
 
@@ -62,12 +100,18 @@ lapangan yang tersedia dari lapangan yang hanya dapat dilihat.
     "nama": "Lapangan ITERA",
     "harga": 200000,
     "aktif": true,
+    "lokasi": "https://maps.app.goo.gl/AbCdEf123456",
+    "deskripsi": "Lapangan futsal indoor dengan lantai sintetis.\n\nTersedia ruang ganti dan area parkir.",
     "gambar": "lapangan/6d8262a4-4da3-4d79-a7f3-93491ab317fa.webp",
     "gambarUrl": "https://cdn.example.com/lapangan/6d8262a4-4da3-4d79-a7f3-93491ab317fa.webp",
     "createdAt": "2026-10-26T10:00:00.000Z"
   }
 ]
 ```
+
+Lapangan yang dibuat sebelum field `lokasi` dan `deskripsi` ditambahkan mengembalikan
+`null` untuk keduanya. Nilai `lokasi` lama yang bukan link Google Maps (jika ada) tetap
+terbaca apa adanya sampai lapangan itu diperbarui dengan link yang valid.
 
 ## `POST /api/lapangan`
 
@@ -79,6 +123,8 @@ menambahkan boundary.
 |---|---|---|---|
 | `nama` | string | Ya | Setelah trim, 3–100 karakter. |
 | `harga` | string angka | Ya | Harus dapat diparse sebagai bilangan bulat lebih dari 0. |
+| `lokasi` | string | Tidak | Link Google Maps (https), maksimal 500 karakter. Lihat [Ketentuan lokasi](#ketentuan-lokasi). |
+| `deskripsi` | string | Tidak | Paragraf, maksimal 2000 karakter. Lihat [Ketentuan deskripsi](#ketentuan-deskripsi). |
 | `aktif` | string | Tidak | Nilai tepat `false` membuat status nonaktif; selain itu aktif. |
 | `gambar` | file | Tidak | Lihat [Ketentuan gambar](#ketentuan-gambar). |
 
@@ -86,7 +132,7 @@ menambahkan boundary.
 
 | Status | Kondisi |
 |---|---|
-| 400 | Body bukan multipart, nama/harga tidak valid, atau file bukan gambar yang valid. |
+| 400 | Body bukan multipart, nama/harga tidak valid, `lokasi` bukan link Google Maps yang valid, `deskripsi` lebih dari 2000 karakter, atau file bukan gambar yang valid. |
 | 401 | Belum masuk. |
 | 403 | Role bukan `ADMIN`. |
 | 413 | Gambar lebih besar dari 2 MB. |
@@ -94,7 +140,7 @@ menambahkan boundary.
 | 500 | Gagal menyimpan data lapangan. Gambar yang sempat terunggah dihapus kembali. |
 | 502 | Gagal mengunggah gambar ke penyimpanan objek. |
 
-Validasi nama dan harga dijalankan sebelum gambar diunggah, sehingga request yang
+Validasi field teks dijalankan sebelum gambar diunggah, sehingga request yang
 ditolak tidak meninggalkan file di R2.
 
 ## `GET /api/lapangan/:id`
@@ -112,15 +158,19 @@ nonaktif. Lapangan nonaktif bersifat hanya untuk dilihat oleh konsumen publik.
 
 Memerlukan sesi role `ADMIN`. Request harus berupa `multipart/form-data`.
 
-- `PUT` mengganti data teks secara penuh: `nama` dan `harga` wajib, dan `aktif` yang
-  tidak dikirim dianggap `true`.
+- `PUT` mengganti data teks secara penuh: `nama` dan `harga` wajib. `aktif` yang
+  tidak dikirim dianggap `true`, sedangkan `lokasi` dan `deskripsi` yang tidak
+  dikirim dikosongkan menjadi `null`.
 - `PATCH` bersifat parsial: hanya field yang dikirim yang diubah. Request tanpa satu
-  pun perubahan ditolak dengan 400.
+  pun perubahan ditolak dengan 400. Untuk mengosongkan `lokasi` atau `deskripsi`,
+  kirim field tersebut dengan nilai kosong.
 
 | Field | Tipe | Aturan |
 |---|---|---|
 | `nama` | string | Sama seperti `POST`. Wajib pada `PUT`. |
 | `harga` | string angka | Sama seperti `POST`. Wajib pada `PUT`. |
+| `lokasi` | string | Sama seperti `POST`. Nilai kosong menghapus lokasi. |
+| `deskripsi` | string | Sama seperti `POST`. Nilai kosong menghapus deskripsi. |
 | `aktif` | string | Nilai tepat `false` menonaktifkan; selain itu mengaktifkan. |
 | `gambar` | file | Mengganti gambar. Lihat [Ketentuan gambar](#ketentuan-gambar). |
 | `hapusGambar` | string | Nilai tepat `true` menghapus gambar. Diabaikan jika `gambar` juga dikirim. |
@@ -133,7 +183,7 @@ tersimpan.
 
 | Status | Kondisi |
 |---|---|
-| 400 | Body bukan multipart, nama/harga tidak valid, file bukan gambar valid, atau (`PATCH`) tidak ada perubahan. |
+| 400 | Body bukan multipart, nama/harga tidak valid, `lokasi` bukan link Google Maps yang valid, `deskripsi` melebihi batas, file bukan gambar valid, atau (`PATCH`) tidak ada perubahan. |
 | 401 / 403 | Belum masuk / role bukan `ADMIN`. |
 | 404 | ID tidak valid atau lapangan tidak ada. |
 | 413 / 415 | Gambar terlalu besar / MIME tidak didukung. |

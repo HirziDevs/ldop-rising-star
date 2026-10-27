@@ -70,7 +70,9 @@ app/
 │   ├── page.tsx                    -> /
 │   ├── lapangan/
 │   │   ├── page.tsx                -> /lapangan
-│   │   └── [id]/page.tsx           -> /lapangan/[id]
+│   │   └── [id]/
+│   │       ├── page.tsx            -> /lapangan/[id]
+│   │       └── booking/page.tsx    -> /lapangan/[id]/booking
 │   └── booking/
 │       ├── page.tsx                -> /booking
 │       └── [id]/page.tsx           -> /booking/[id]
@@ -138,7 +140,6 @@ prisma/
 | `/admin/lapangan/create` | Tambah lapangan (nama, harga, status aktif, gambar opsional) |
 | `/admin/lapangan/[id]` | Detail lapangan |
 | `/admin/users` | Kelola pengguna |
-| `/admin/users/[i]` | Detail pengguna |
 
 ---
 
@@ -150,7 +151,7 @@ app/api/
 ├── auth/register/route.ts            POST                   Pendaftaran akun
 ├── users/route.ts                    GET                    Daftar user
 ├── users/[id]/route.ts               GET PUT PATCH DELETE   Kelola user
-├── lapangan/route.ts                 GET POST               Daftar & tambah lapangan (GET publik; POST khusus admin)
+├── lapangan/route.ts                 GET POST               Daftar & tambah lapangan
 ├── lapangan/[id]/route.ts            GET PUT PATCH DELETE   Detail, ubah, hapus lapangan
 └── bookings/
     ├── route.ts                      GET POST               Daftar & buat booking
@@ -176,7 +177,7 @@ Skema MongoDB berada di `prisma/schema.prisma`. Model memakai `ObjectId`; relasi
 | Model | Keterangan |
 |---|---|
 | `User` | Nama, email, password hash, dan role (`USER` atau `ADMIN`) |
-| `Lapangan` | Nama, harga, status aktif, dan key gambar opsional di Cloudflare R2 |
+| `Lapangan` | Nama, harga, status aktif, lokasi Google Maps, deskripsi, dan key gambar opsional di Cloudflare R2 |
 | `Booking` | Pengguna, lapangan, rentang waktu, dan status booking |
 
 Setelah mengubah skema:

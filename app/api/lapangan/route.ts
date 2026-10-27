@@ -3,7 +3,12 @@ import { requireApiUser } from "@/lib/guard";
 import { prisma } from "@/lib/prisma";
 import { deleteImage } from "@/lib/r2";
 import { addImageUrl, ImageError, isFilled, processAndUploadImage } from "@/lib/image";
-import { parseLapanganHarga, parseLapanganNama } from "@/lib/lapangan";
+import {
+  parseLapanganDeskripsi,
+  parseLapanganHarga,
+  parseLapanganLokasi,
+  parseLapanganNama,
+} from "@/lib/lapangan";
 
 /** GET /api/lapangan - Mengambil daftar lapangan beserta URL gambarnya. */
 export async function GET() {
@@ -28,6 +33,8 @@ export async function POST(req: Request) {
 
   const nama = parseLapanganNama(form.get("nama"));
   const harga = parseLapanganHarga(form.get("harga"));
+  const lokasi = parseLapanganLokasi(form.get("lokasi"));
+  const deskripsi = parseLapanganDeskripsi(form.get("deskripsi"));
   const aktif = form.get("aktif") !== "false";
   const file = form.get("gambar");
 
@@ -36,6 +43,15 @@ export async function POST(req: Request) {
   }
   if (!harga) {
     return NextResponse.json({ message: "Harga harus berupa bilangan bulat lebih dari 0." }, { status: 400 });
+  }
+  if (lokasi === undefined) {
+    return NextResponse.json(
+      { message: "Lokasi harus berupa link Google Maps (https) dan maksimal 500 karakter." },
+      { status: 400 },
+    );
+  }
+  if (deskripsi === undefined) {
+    return NextResponse.json({ message: "Deskripsi maksimal 2000 karakter." }, { status: 400 });
   }
 
   let gambar: string | null = null;
@@ -50,7 +66,7 @@ export async function POST(req: Request) {
 
   try {
     const lapangan = await prisma.lapangan.create({
-      data: { nama, harga, aktif, gambar },
+      data: { nama, harga, aktif, lokasi, deskripsi, gambar },
     });
 
     return NextResponse.json(addImageUrl(lapangan), { status: 201 });
