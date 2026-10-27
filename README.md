@@ -68,10 +68,12 @@ app/
 ├── (public)/
 │   ├── layout.tsx                  ← header halaman publik
 │   ├── page.tsx                    -> /
-│   ├── lapangan/page.tsx           -> /lapangan
+│   ├── lapangan/
+│   │   ├── page.tsx                -> /lapangan
+│   │   └── [id]/page.tsx           -> /lapangan/[id]
 │   └── booking/
 │       ├── page.tsx                -> /booking
-│       └── [id]/page.tsx            -> /booking/[id]
+│       └── [id]/page.tsx           -> /booking/[id]
 ├── (auth)/
 │   ├── layout.tsx                  ← header halaman autentikasi
 │   ├── login/page.tsx              -> /login
@@ -80,11 +82,12 @@ app/
 │   ├── layout.tsx                  ← header admin
 │   ├── page.tsx                    -> /admin
 │   ├── booking/page.tsx            -> /admin/booking
+│   ├── users/page.tsx              -> /admin/users
 │   ├── lapangan/
 │   │   ├── page.tsx                -> /admin/lapangan
 │   │   ├── create/page.tsx         -> /admin/lapangan/create
 │   │   └── [id]/page.tsx           -> /admin/lapangan/[id]
-│   └── settings/page.tsx           -> /admin/settings
+├── favicon.ico
 ├── api/
 │   ├── auth/[...nextauth]/route.ts
 │   ├── auth/register/route.ts      ← pendaftaran akun
@@ -93,8 +96,7 @@ app/
 │   │   └── [id]/route.ts
 │   └── bookings/
 │       ├── route.ts
-│       ├── [id]/route.ts
-│       └── tersedia/route.ts
+│       └── [id]/route.ts
 ├── layout.tsx                      ← layout akar, metadata, dan font
 ├── globals.css
 ├── not-found.tsx
@@ -105,8 +107,11 @@ auth.config.ts                      ← konfigurasi Auth.js tanpa akses database
 types/
 └── next-auth.d.ts                  ← tipe tambahan untuk session dan JWT Auth.js
 prisma/
-├── schema.prisma                   ← skema database
+├── data-awal/
+│   └── contoh.csv                  ← data awal untuk seed sample
 ├── migrations/                     ← migrasi SQLite lama; tidak dipakai MongoDB
+├── schema.prisma                   ← skema database
+└── seed.ts                         ← memasukkan data sample dari CSV
 ```
 
 - Folder dengan kurung seperti `(public)` dan `(auth)` adalah **route group**: hanya untuk mengelompokkan halaman, **tidak muncul di URL**.
@@ -121,6 +126,8 @@ prisma/
 |---|---|
 | `/` | Beranda |
 | `/lapangan` | Daftar lapangan |
+| `/lapangan/[id]` | Detail lapangan |
+| `/lapangan/[id]/booking` | Form booking lapangan |
 | `/booking` | Booking pengguna |
 | `/booking/[id]` | Detail booking |
 | `/login` | Masuk |
@@ -130,7 +137,8 @@ prisma/
 | `/admin/lapangan` | Daftar lapangan admin, termasuk status dan gambar |
 | `/admin/lapangan/create` | Tambah lapangan (nama, harga, status aktif, gambar opsional) |
 | `/admin/lapangan/[id]` | Detail lapangan |
-| `/admin/settings` | Pengaturan admin |
+| `/admin/users` | Kelola pengguna |
+| `/admin/users/[i]` | Detail pengguna |
 
 ---
 
@@ -140,23 +148,24 @@ prisma/
 app/api/
 ├── auth/[...nextauth]/route.ts       GET POST               Auth.js
 ├── auth/register/route.ts            POST                   Pendaftaran akun
+├── users/route.ts                    GET                    Daftar user
+├── users/[id]/route.ts               GET PUT PATCH DELETE   Kelola user
 ├── lapangan/route.ts                 GET POST               Daftar & tambah lapangan (GET publik; POST khusus admin)
 ├── lapangan/[id]/route.ts            GET PUT PATCH DELETE   Detail, ubah, hapus lapangan
 └── bookings/
     ├── route.ts                      GET POST               Daftar & buat booking
-    ├── [id]/route.ts                 GET PUT PATCH DELETE   Detail, ubah, hapus booking
-    └── tersedia/route.ts             GET                    Cek ketersediaan
+    └── [id]/route.ts                 GET PUT PATCH DELETE   Detail, ubah, hapus booking
 ```
 
 Setiap HTTP method (GET, POST, PUT, PATCH, DELETE) adalah **named export** di file `route.ts` yang sama.
 
-| Status | Kapan digunakan | Kondisi di project ini |
-|---|---|---|
-| 200/201 | Permintaan berhasil; 201 menandai data baru dibuat | Auth.js, pendaftaran akun, dan GET/POST `/api/lapangan` |
-| 400/409/503 | Input salah, email sudah dipakai, atau database tidak tersedia | Pendaftaran akun; validasi POST lapangan memakai 400 |
-| 401/403 | Belum login atau role tidak punya akses | API lapangan dan booking yang dilindungi |
-| 413/415/502 | Gambar terlalu besar, format tidak didukung, atau unggah R2 gagal | POST `/api/lapangan` |
-| 501 | Endpoint belum dikerjakan | Operasi booking dan operasi detail `/api/lapangan/[id]` |
+| Status | Penjelasan |
+|---|---|
+| 200/201 | Permintaan berhasil diproses. |
+| 400/409/503 | Permintaan tidak dapat diproses. |
+| 401/403 | Akses tidak diizinkan. |
+| 413/415/502 | Gambar tidak dapat diproses. |
+| 501 | Fitur belum tersedia. |
 
 ---
 

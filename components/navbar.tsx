@@ -52,7 +52,7 @@ export async function Navbar({ variant }: NavbarProps) {
             <Button asChild variant="ghost" size="sm"><Link href="/admin">Ringkasan</Link></Button>
             <Button asChild variant="ghost" size="sm"><Link href="/admin/booking">Booking</Link></Button>
             <Button asChild variant="ghost" size="sm"><Link href="/admin/lapangan">Lapangan</Link></Button>
-            <Button asChild variant="ghost" size="sm"><Link href="/admin/settings">Pengaturan</Link></Button>
+            <Button asChild variant="ghost" size="sm"><Link href="/admin/users">Pengguna</Link></Button>
             <form action={logoutAction}>
               <Button type="submit" variant="outline" size="sm">Keluar</Button>
             </form>
