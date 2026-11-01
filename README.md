@@ -91,17 +91,8 @@ Jangan pernah `push --force` ke branch tujuan setelah PR dibuka.
 - [ ] Tampilan dicek di desktop dan mobile.
 - [ ] Memenuhi syarat di Bagian 2 (follow GitHub & LinkedIn HMIF ITERA).
 
-### 0.6 Batas waktu
 
-| Tahap | Tanggal |
-| --- | --- |
-| Pengumuman & pemilihan tema (Minggu 1) | `<isi tanggal>` |
-| Batas pengumpulan PR (akhir Minggu 6) | `<isi tanggal>` |
-| Sesi presentasi/demo | `<isi tanggal>` |
-
-Pengumpulan dilakukan paling lambat akhir Minggu ke-6. Keterlambatan tanpa konfirmasi ke panitia dikenakan pengurangan nilai.
-
-### 0.7 Daftar tema (pilih satu, satu tema hanya untuk satu kelompok — siapa cepat, dapat)
+### 0.6 Daftar tema (pilih satu, satu tema hanya untuk satu kelompok — siapa cepat, dapat)
 
 1. Company profile UMKM
 2. Website sekolah / bimbingan belajar
