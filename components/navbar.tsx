@@ -19,7 +19,7 @@ export async function Navbar({ variant }: NavbarProps) {
     <header className="border-b bg-background">
       <div className="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <Link href={variant === "admin" ? "/admin" : "/"} className="font-semibold tracking-tight">
-          {variant === "admin" ? "Admin · Booking Lapangan" : "Booking Lapangan"}
+          Booking Lapangan
         </Link>
 
         {variant === "public" ? (
@@ -27,12 +27,11 @@ export async function Navbar({ variant }: NavbarProps) {
             <Button asChild variant="ghost" size="sm"><Link href="/lapangan">Lapangan</Link></Button>
             {session ? (
               <>
+                <Button asChild variant="ghost" size="sm"><Link href="/booking">Booking</Link></Button>
+                {session.user.name ? <span className="hidden text-sm text-muted-foreground sm:inline">{session.user.name}</span> : null}
                 {isAdmin ? (
-                  <Button asChild variant="ghost" size="sm"><Link href="/admin">Admin</Link></Button>
-                ) : (
-                  <Button asChild variant="ghost" size="sm"><Link href="/booking">Booking</Link></Button>
-                )}
-                <span className="hidden text-sm text-muted-foreground sm:inline">{session.user.name}</span>
+                  <Button asChild variant="outline" size="sm"><Link href="/admin">Admin</Link></Button>
+                ) : null}
                 <form action={logoutAction}>
                   <Button type="submit" variant="outline" size="sm">Keluar</Button>
                 </form>
@@ -53,7 +52,9 @@ export async function Navbar({ variant }: NavbarProps) {
             <Button asChild variant="ghost" size="sm"><Link href="/admin/booking">Booking</Link></Button>
             <Button asChild variant="ghost" size="sm"><Link href="/admin/lapangan">Lapangan</Link></Button>
             <Button asChild variant="ghost" size="sm"><Link href="/admin/users">Pengguna</Link></Button>
+            {session?.user.name ? <span className="hidden text-sm text-muted-foreground sm:inline">{session.user.name}</span> : null}
             <form action={logoutAction}>
+            <Button asChild variant="outline" size="sm"><Link href="/">Exit Admin</Link></Button>
               <Button type="submit" variant="outline" size="sm">Keluar</Button>
             </form>
           </nav>

@@ -1,5 +1,5 @@
-import { PagePlaceholder } from "@/components/page-placeholder";
 import { requireUser } from "@/lib/guard";
+import { PagePlaceholder } from "@/components/page-placeholder";
 
 export default async function LapanganBookingPage({ params }: { params: Promise<{ id: string }> }) {
   await requireUser(["USER", "ADMIN"]);
@@ -10,11 +10,9 @@ export default async function LapanganBookingPage({ params }: { params: Promise<
       title={`Booking Lapangan ${id}`}
       owner="Frontend"
       items={[
-        "Sediakan form untuk memilih tanggal, jam mulai, dan jam selesai.",
+        "Sediakan pilihan tanggal dan jam booking.",
         "Tampilkan ringkasan lapangan dan harga sebelum booking dikirim.",
-        "Cek ketersediaan melalui GET /api/lapangan/[id]",
-        "Sediakan aksi untuk mengirim booking setelah jadwal tersedia.",
-        "Lapangan nonaktif hanya dapat dilihat dan tidak dapat dipesan.",
+        "Hubungkan formulir dengan proses pembuatan booking.",
       ]}
     />
   );

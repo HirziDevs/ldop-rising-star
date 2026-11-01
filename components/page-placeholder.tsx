@@ -8,6 +8,7 @@ type Props = {
 
 export function PagePlaceholder({ title, owner, items }: Props) {
   return (
+    <div className="mx-auto w-full max-w-6xl">
     <Card>
       <CardHeader>
         <div className="flex flex-wrap items-center gap-2">
@@ -23,5 +24,6 @@ export function PagePlaceholder({ title, owner, items }: Props) {
         </ul>
       </CardContent>
     </Card>
+    </div>
   );
 }
