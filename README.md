@@ -2,7 +2,7 @@
 
 Panduan teknis untuk tim (Backend & Frontend): cara menjalankan project, struktur folder, routing, dan kondisi API saat ini.
 
-**Stack:** Next.js 16 (App Router, TypeScript) · Tailwind CSS 4 + shadcn/ui · MongoDB · Prisma 6 · Auth.js v5
+**Stack:** Next.js 16 (App Router, TypeScript) · Tailwind CSS 4 + shadcn/ui · MongoDB · Prisma 6 · Auth.js v5 · Cloudflare R2
 
 ## Pembagian Role Anggota Kelompok
 
@@ -31,13 +31,12 @@ Panduan teknis untuk tim (Backend & Frontend): cara menjalankan project, struktu
 git clone <repo>
 cd <nama-folder-project>
 npm install
-cp .env.example .env          # lalu isi DATABASE_URL dan AUTH_SECRET
+cp .env.example .env          # isi DATABASE_URL, AUTH_SECRET, dan konfigurasi Cloudflare R2
 npx prisma generate           # buat Prisma Client di node_modules/@prisma/client
-npx prisma db push            # sinkronkan skema dengan MongoDB
 npm run dev                   # http://localhost:3000
 ```
 
-> `.env` **tidak boleh di-commit**. Isi `DATABASE_URL` dengan connection string MongoDB dan `AUTH_SECRET` dengan secret Auth.js (`npx auth secret`). Prisma memerlukan MongoDB replica set; MongoDB Atlas sudah menyediakannya.
+> `.env` **tidak boleh di-commit**. Isi `DATABASE_URL` dengan connection string MongoDB dan `AUTH_SECRET` dengan secret Auth.js (`npx auth secret`). Prisma memerlukan MongoDB replica set; MongoDB Atlas sudah menyediakannya. Untuk unggah gambar lapangan, isi `R2_BUCKET`, `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, dan `R2_PUBLIC_URL` dari Cloudflare R2. Bucket perlu dapat menyajikan gambar melalui URL publik tersebut.
 
 | Perintah | Fungsi |
 |---|---|
@@ -45,7 +44,7 @@ npm run dev                   # http://localhost:3000
 | `npm run build` | Buat build produksi |
 | `npm start` | Jalankan build produksi |
 | `npm run lint` | Cek kode dengan ESLint |
-| `npx prisma db push` | Sinkronkan skema Prisma dengan MongoDB (MongoDB tidak memakai Prisma Migrate) |
+| `npx prisma db push` | Sinkronkan skema Prisma dengan MongoDB |
 | `npx prisma generate` | Buat Prisma Client di `node_modules/@prisma/client` |
 
 ---
@@ -57,10 +56,14 @@ app/
 ├── (public)/
 │   ├── layout.tsx                  ← header halaman publik
 │   ├── page.tsx                    -> /
-│   ├── lapangan/page.tsx           -> /lapangan
+│   ├── lapangan/
+│   │   ├── page.tsx                -> /lapangan
+│   │   └── [id]/
+│   │       ├── page.tsx            -> /lapangan/[id]
+│   │       └── booking/page.tsx    -> /lapangan/[id]/booking
 │   └── booking/
 │       ├── page.tsx                -> /booking
-│       └── [id]/page.tsx            -> /booking/[id]
+│       └── [id]/page.tsx           -> /booking/[id]
 ├── (auth)/
 │   ├── layout.tsx                  ← header halaman autentikasi
 │   ├── login/page.tsx              -> /login
@@ -69,11 +72,12 @@ app/
 │   ├── layout.tsx                  ← header admin
 │   ├── page.tsx                    -> /admin
 │   ├── booking/page.tsx            -> /admin/booking
+│   ├── users/page.tsx              -> /admin/users
 │   ├── lapangan/
 │   │   ├── page.tsx                -> /admin/lapangan
 │   │   ├── create/page.tsx         -> /admin/lapangan/create
 │   │   └── [id]/page.tsx           -> /admin/lapangan/[id]
-│   └── settings/page.tsx           -> /admin/settings
+├── favicon.ico
 ├── api/
 │   ├── auth/[...nextauth]/route.ts
 │   ├── auth/register/route.ts      ← pendaftaran akun
@@ -82,29 +86,18 @@ app/
 │   │   └── [id]/route.ts
 │   └── bookings/
 │       ├── route.ts
-│       ├── [id]/route.ts
-│       └── tersedia/route.ts
+│       └── [id]/route.ts
 ├── layout.tsx                      ← layout akar, metadata, dan font
 ├── globals.css
 ├── not-found.tsx
 └── error.tsx
-components/
-├── ui/                             ← komponen shadcn/ui
-├── navbar.tsx                      ← header publik, auth, dan admin
-└── page-placeholder.tsx            ← penanda halaman yang belum dikerjakan
-lib/
-├── auth.ts                         ← Auth.js Credentials, hash password, Prisma
-├── guard.ts                        ← validasi sesi dan role untuk halaman/API
-├── prisma.ts                       ← singleton Prisma Client
-├── placeholder.ts                  ← respons 501 untuk API kerangka
-└── utils.ts                        ← helper className
+components/                         ← komponen UI
+lib/                                ← utilitas dan integrasi aplikasi
 auth.config.ts                      ← konfigurasi Auth.js tanpa akses database
 types/
 └── next-auth.d.ts                  ← tipe tambahan untuk session dan JWT Auth.js
 prisma/
-├── schema.prisma                   ← skema database
-├── migrations/                     ← migrasi SQLite lama; tidak dipakai MongoDB
-└── dev.db                          ← database SQLite lama; tidak otomatis dipindahkan
+└── schema.prisma                   ← skema database
 ```
 
 - Folder dengan kurung seperti `(public)` dan `(auth)` adalah **route group**: hanya untuk mengelompokkan halaman, **tidak muncul di URL**.
@@ -119,16 +112,18 @@ prisma/
 |---|---|
 | `/` | Beranda |
 | `/lapangan` | Daftar lapangan |
+| `/lapangan/[id]` | Detail lapangan |
+| `/lapangan/[id]/booking` | Form booking lapangan |
 | `/booking` | Booking pengguna |
 | `/booking/[id]` | Detail booking |
 | `/login` | Masuk |
 | `/register` | Daftar akun |
 | `/admin` | Ringkasan admin |
 | `/admin/booking` | Kelola booking |
-| `/admin/lapangan` | Kelola lapangan |
-| `/admin/lapangan/create` | Tambah lapangan |
+| `/admin/lapangan` | Daftar lapangan admin, termasuk status dan gambar |
+| `/admin/lapangan/create` | Tambah lapangan (nama, harga, status aktif, gambar opsional) |
 | `/admin/lapangan/[id]` | Detail lapangan |
-| `/admin/settings` | Pengaturan admin |
+| `/admin/users` | Kelola pengguna |
 
 ---
 
@@ -138,22 +133,24 @@ prisma/
 app/api/
 ├── auth/[...nextauth]/route.ts       GET POST               Auth.js
 ├── auth/register/route.ts            POST                   Pendaftaran akun
+├── users/route.ts                    GET                    Daftar user
+├── users/[id]/route.ts               GET PUT PATCH DELETE   Kelola user
 ├── lapangan/route.ts                 GET POST               Daftar & tambah lapangan
 ├── lapangan/[id]/route.ts            GET PUT PATCH DELETE   Detail, ubah, hapus lapangan
 └── bookings/
     ├── route.ts                      GET POST               Daftar & buat booking
-    ├── [id]/route.ts                 GET PUT PATCH DELETE   Detail, ubah, hapus booking
-    └── tersedia/route.ts             GET                    Cek ketersediaan
+    └── [id]/route.ts                 GET PUT PATCH DELETE   Detail, ubah, hapus booking
 ```
 
 Setiap HTTP method (GET, POST, PUT, PATCH, DELETE) adalah **named export** di file `route.ts` yang sama.
 
-| Status | Kapan digunakan | Kondisi di project ini |
-|---|---|---|
-| 200/201 | Login, sesi, atau pendaftaran berhasil | Auth.js dan pendaftaran akun |
-| 400/409/503 | Input salah, email sudah dipakai, atau database tidak tersedia | Pendaftaran akun |
-| 401/403 | Belum login atau role tidak punya akses | API lapangan dan booking |
-| 501 | Endpoint belum dikerjakan | Operasi lapangan dan booking |
+| Status | Penjelasan |
+|---|---|
+| 200/201 | Permintaan berhasil diproses. |
+| 400/409/503 | Permintaan tidak dapat diproses. |
+| 401/403 | Akses tidak diizinkan. |
+| 413/415/502 | Gambar tidak dapat diproses. |
+| 501 | Fitur belum tersedia. |
 
 ---
 
@@ -164,7 +161,7 @@ Skema MongoDB berada di `prisma/schema.prisma`. Model memakai `ObjectId`; relasi
 | Model | Keterangan |
 |---|---|
 | `User` | Nama, email, password hash, dan role (`USER` atau `ADMIN`) |
-| `Lapangan` | Nama, harga, dan status aktif lapangan |
+| `Lapangan` | Nama, harga, status aktif, lokasi Google Maps, deskripsi, dan key gambar opsional di Cloudflare R2 |
 | `Booking` | Pengguna, lapangan, rentang waktu, dan status booking |
 
 Setelah mengubah skema:

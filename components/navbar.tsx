@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { auth, signOut } from "@/lib/auth";
 import { NavbarMenu, type NavItem } from "@/components/navbar-menu";
 
@@ -14,7 +15,8 @@ const adminLinks: NavItem[] = [
   { href: "/admin", label: "Ringkasan", exact: true },
   { href: "/admin/booking", label: "Booking" },
   { href: "/admin/lapangan", label: "Lapangan" },
-  { href: "/admin/settings", label: "Pengaturan" },
+  { href: "/admin/users", label: "Pengguna" },
+  { href: "/", label: "Exit Admin" },
 ];
 
 export async function Navbar({ variant }: NavbarProps) {
