@@ -1,0 +1,14 @@
+# Salin file ini dengan nama .env lalu isi confignya. File .env JANGAN dicommit.
+
+# MongoDB - Masukkan URL MongoDB di sini
+DATABASE_URL="mongodb+srv://hirzidevs_db_user:i7qUjY9IwLjQI9JG@risingstar.5ulgchh.mongodb.net/booking_lapangan?retryWrites=true&w=majority"
+
+# Auth.js - Jalankan command: npx auth secret
+AUTH_SECRET="a44ac97b636bf8d738053c29cee9b989e3548699e9bd7050a25f3ae698150ab0"
+
+# Cloudflare R2 - Masukkan konfigurasi R2 di sini
+R2_BUCKET="lapangan"
+R2_ACCOUNT_ID="516225236bfe6cd876e674c77e6f61cc"
+R2_ACCESS_KEY_ID="41075cdb9b3560a9e0977297063d7f04"
+R2_SECRET_ACCESS_KEY="77d1175a8cb99fddf337c0cb1d4989780923372673bc858a7994ac675656c834"
+R2_PUBLIC_URL="https://cdn.znproject.my.id"
