@@ -14,6 +14,7 @@ model User {
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
   nama      String?
   email     String    @unique
+  foto      String?
   passwordHash String
   role         String    @default("USER")
   bookings     Booking[]

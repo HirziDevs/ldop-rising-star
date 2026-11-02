@@ -19,7 +19,7 @@ export type NavItem = {
 type NavbarMenuProps = {
   variant: "public" | "auth" | "admin";
   links: NavItem[];
-  user: { name: string; isAdmin: boolean } | null;
+  user: { name: string; image?: string | null; isAdmin: boolean } | null;
   logoutAction: () => Promise<void>;
 };
 
@@ -28,21 +28,14 @@ function isActive(pathname: string, item: NavItem) {
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0]!.toUpperCase())
-    .join("");
-}
-
-function UserChip({ name }: { name: string }) {
+function UserChip({ name, image }: { name: string; image?: string | null }) {
   return (
     <span className="flex min-w-0 items-center gap-2.5">
-      <span className="grid size-8 shrink-0 place-items-center rounded-full bg-shuttle text-xs font-bold text-night">
-        {initials(name)}
-      </span>
+      <img
+        src={image || "/favicon.ico"}
+        alt=""
+        className="size-8 shrink-0 rounded-full bg-shuttle object-cover"
+      />
       <span className="truncate text-sm font-semibold text-white">{name}</span>
     </span>
   );
@@ -103,7 +96,7 @@ export function NavbarMenu({ variant, links, user, logoutAction }: NavbarMenuPro
             <div className="hidden items-center gap-3 md:flex">
               {user ? (
                 <>
-                  <span className="max-w-48"><UserChip name={user.name} /></span>
+                  <span className="max-w-48"><UserChip name={user.name} image={user.image} /></span>
                   <form action={logoutAction}>
                     <Button type="submit" variant="ghost" size="sm" className="text-slate-300 hover:bg-white/10 hover:text-white">
                       <LogOutIcon /> Keluar
@@ -177,7 +170,7 @@ export function NavbarMenu({ variant, links, user, logoutAction }: NavbarMenuPro
               <div className="mt-3 border-t border-white/10 pt-4 pb-2">
                 {user ? (
                   <div className="flex items-center justify-between gap-3">
-                    <UserChip name={user.name} />
+                    <UserChip name={user.name} image={user.image} />
                     <form action={logoutAction}>
                       <Button type="submit" variant="outline" size="sm" className="border-white/15 bg-transparent text-white hover:bg-white/10 hover:text-white">
                         <LogOutIcon /> Keluar
