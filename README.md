@@ -33,19 +33,8 @@ cd <nama-folder-project>
 npm install
 cp .env.example .env          # isi DATABASE_URL, AUTH_SECRET, dan konfigurasi Cloudflare R2
 npx prisma generate           # buat Prisma Client di node_modules/@prisma/client
-npx prisma db push            # sinkronkan skema dengan MongoDB
-npm run db:seed               # isi data sample (4 user, 2 lapangan, 6 booking)
 npm run dev                   # http://localhost:3000
 ```
-
-Perintah seed membaca `prisma/data-awal/contoh.csv` dan memerlukan Node.js 22.6 atau
-lebih baru.
-
-Email akun sample: `hirzi@example.test`, `naela@example.test`,
-`fatakhul@example.test`, dan `iqbal@example.test`. Semuanya memakai kata sandi
-`Sample123!`. Data seed memakai ID tetap dan aman dijalankan ulang untuk
-memperbarui record sample. Gunakan hanya untuk development atau demo, bukan
-sebagai akun produksi.
 
 > `.env` **tidak boleh di-commit**. Isi `DATABASE_URL` dengan connection string MongoDB dan `AUTH_SECRET` dengan secret Auth.js (`npx auth secret`). Prisma memerlukan MongoDB replica set; MongoDB Atlas sudah menyediakannya. Untuk unggah gambar lapangan, isi `R2_BUCKET`, `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, dan `R2_PUBLIC_URL` dari Cloudflare R2. Bucket perlu dapat menyajikan gambar melalui URL publik tersebut.
 
@@ -55,9 +44,8 @@ sebagai akun produksi.
 | `npm run build` | Buat build produksi |
 | `npm start` | Jalankan build produksi |
 | `npm run lint` | Cek kode dengan ESLint |
-| `npx prisma db push` | Sinkronkan skema Prisma dengan MongoDB (MongoDB tidak memakai Prisma Migrate) |
+| `npx prisma db push` | Sinkronkan skema Prisma dengan MongoDB |
 | `npx prisma generate` | Buat Prisma Client di `node_modules/@prisma/client` |
-| `npm run db:seed` | Buat atau perbarui 4 user, 2 lapangan, dan 6 booking sample |
 
 ---
 
@@ -109,11 +97,7 @@ auth.config.ts                      ← konfigurasi Auth.js tanpa akses database
 types/
 └── next-auth.d.ts                  ← tipe tambahan untuk session dan JWT Auth.js
 prisma/
-├── data-awal/
-│   └── contoh.csv                  ← data awal untuk seed sample
-├── migrations/                     ← migrasi SQLite lama; tidak dipakai MongoDB
-├── schema.prisma                   ← skema database
-└── seed.ts                         ← memasukkan data sample dari CSV
+└── schema.prisma                   ← skema database
 ```
 
 - Folder dengan kurung seperti `(public)` dan `(auth)` adalah **route group**: hanya untuk mengelompokkan halaman, **tidak muncul di URL**.
