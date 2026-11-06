@@ -12,6 +12,8 @@ ditandai sebagai direncanakan dan tidak dianggap sudah tersedia.
 | Detail lapangan | GET | `/api/lapangan/:id` | Publik; semua status, lapangan nonaktif hanya untuk dilihat | [Lapangan](docs/api/lapangan.md) |
 | Ubah lapangan | PUT, PATCH | `/api/lapangan/:id` | ADMIN | [Lapangan](docs/api/lapangan.md) |
 | Hapus lapangan | DELETE | `/api/lapangan/:id` | ADMIN | [Lapangan](docs/api/lapangan.md) |
+| Daftar dan buat rating lapangan | GET, POST | `/api/lapangan/:id/ratings` | Publik untuk GET; USER/ADMIN untuk POST | [Rating lapangan](docs/api/rating.md) |
+| Detail, ubah, hapus rating | GET, PUT, PATCH, DELETE | `/api/ratings/:id` | Publik untuk GET; pemilik rating untuk perubahan | [Rating lapangan](docs/api/rating.md) |
 
 Daftar rute yang lebih luas ada di [README.md bagian 4](README.md#4-struktur-api).
 
