@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/guard";
 
 export default async function EditProfilePage() {
-  const user = await requireUser();
+  await requireUser();
 
   return (
     <div className="space-y-4">
@@ -18,7 +18,7 @@ export default async function EditProfilePage() {
         ]}
       />
       <Button asChild variant="outline">
-        <Link href={`/profile/${user.id}`}>Kembali ke profil</Link>
+        <Link href="/profile">Kembali ke profil</Link>
       </Button>
     </div>
   );

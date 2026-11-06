@@ -96,7 +96,7 @@ export function NavbarMenu({ variant, links, user, logoutAction }: NavbarMenuPro
             <div className="hidden items-center gap-3 md:flex">
               {user ? (
                 <>
-                  <Link href={`/profile/${user.id}`} aria-label={`Buka profil ${user.name}`} className="max-w-48 rounded-lg p-1.5 outline-none transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-shuttle">
+                  <Link href="/profile" aria-label={`Buka profil ${user.name}`} className="max-w-48 rounded-lg p-1.5 outline-none transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-shuttle">
                     <UserChip name={user.name} image={user.image} />
                   </Link>
                   <form action={logoutAction}>
@@ -172,7 +172,7 @@ export function NavbarMenu({ variant, links, user, logoutAction }: NavbarMenuPro
               <div className="mt-3 border-t border-white/10 pt-4 pb-2">
                 {user ? (
                   <div className="flex items-center justify-between gap-3">
-                    <Link href={`/profile/${user.id}`} onClick={close} aria-label={`Buka profil ${user.name}`} className="min-w-0 rounded-lg p-1.5 outline-none transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-shuttle">
+                    <Link href="/profile" onClick={close} aria-label={`Buka profil ${user.name}`} className="min-w-0 rounded-lg p-1.5 outline-none transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-shuttle">
                       <UserChip name={user.name} image={user.image} />
                     </Link>
                     <form action={logoutAction}>
