@@ -10,7 +10,7 @@ const jakarta = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: "Matchday — Booking Lapangan Futsal & Badminton",
+    default: "Matchday - Booking Lapangan Futsal & Badminton",
     template: "%s · Matchday",
   },
   description: "Cari lapangan, pilih jam main, dan booking dalam hitungan menit.",
